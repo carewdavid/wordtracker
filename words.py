@@ -1,6 +1,7 @@
 #! /usr/bin/python
 import sqlite3
 import sys
+import os
 import time
 from datetime import date, timedelta
 
@@ -18,8 +19,8 @@ except:
 desc = None
 if len(sys.argv) > 2:
     desc = sys.argv[2]
-
-db = sqlite3.connect("wordcount.db")
+dbpath = os.environ.get("WORDCOUNT_DB", "wordcount.db")
+db = sqlite3.connect(dbpath)
 cur = db.cursor()
 cur.execute("INSERT INTO wordcount VALUES(?, ?, ?)", (date.isoformat(), words, desc))
 db.commit()
