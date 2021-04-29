@@ -22,6 +22,7 @@ if len(sys.argv) > 2:
 dbpath = os.environ.get("WORDCOUNT_DB", "wordcount.db")
 db = sqlite3.connect(dbpath)
 cur = db.cursor()
+cur.execute("CREATE TABLE IF NOT EXISTS wordcount(date STRING NOT NULL, words INT NOT NULL, desc STRING)")
 cur.execute("INSERT INTO wordcount VALUES(?, ?, ?)", (date.isoformat(), words, desc))
 db.commit()
 db.close()
