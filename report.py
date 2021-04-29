@@ -1,8 +1,9 @@
 #! /usr/bin/python
 import time
+import os
 import sqlite3
-
-db = sqlite3.connect("wordcount.db")
+dbpath = os.environ.get("WORDCOUNT_DB", "wordcound.db")
+db = sqlite3.connect(dbpath)
 cur = db.cursor()
 
 cur.execute("SELECT sum(words) from wordcount")
