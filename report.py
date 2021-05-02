@@ -14,14 +14,13 @@ total = cur.fetchone()
 month = time.strftime("%Y-%m")
 cur.execute('SELECT sum(words), SUM(words) / (STRFTIME("%d") + 1) from wordcount WHERE strftime("%Y-%m", date) = ?', [month])
 monthly = cur.fetchone()
-if monthly is None:
+if monthly[0] is None:
     monthly = (0, 0)
 week = time.strftime("%Y-%W")
 cur.execute('SELECT sum(words), SUM(words) / (STRFTIME("%w") + 1) from wordcount WHERE strftime("%Y-%W", date) = ?', [week])
 weekly = cur.fetchone()
-if weekly is None:
+if weekly[0] is None:
     weekly = (0, 0)
-
 print(f'Total to date: {total[0]} words. Average {total[1]:.1f} / day')
 print(f'Total this month: {monthly[0]}. {monthly[1]:.1f} / day')
 print(f'Total this week: {weekly[0]}. {weekly[1]:.1f} / day')
