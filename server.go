@@ -2,6 +2,7 @@ package main
 
 import (
     "log"
+    "os"
     "database/sql"
     _ "github.com/mattn/go-sqlite3"
 )
@@ -27,7 +28,11 @@ func initDatabase(path string) *sql.DB {
 }
 
 func main() {
-    initDatabase("test.db")
+    dbPath := os.Getenv("DBPATH")
+    if dbPath == "" {
+        log.Fatal("No path to database. Make sure DBPATH is set.")
+    }
+    initDatabase(dbPath)
 
 }
 
