@@ -21,6 +21,7 @@ type Record struct {
 const version = "1.0.0"
 
 var schema = "CREATE TABLE IF NOT EXISTS wordcount(date INTEGER NOT NULL, words INTEGER NOT NULL, desc STRING)"
+var db *sql.DB
 
 func initDatabase(path string) *sql.DB {
 	database, err := sql.Open("sqlite3", path)
@@ -44,8 +45,18 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Could not read request.")
 	}
 	var record Record
-	json.Unmarshal(requestBody, &record)
-	fmt.Println(record)
+	err = json.Unmarshal(requestBody, &record)
+	if err != nil {
+		log.Fatal("Could not read incoming record.")
+	}
+	stmt, err := db.Prepare("INSERT INTO wordcount VALUES(?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = stmt.Exec(record.Date, record.Words, record.Desc)
+	if err != nil {
+		log.Fatal("Error inserting into database.")
+	}
 }
 
 func serve() {
@@ -59,7 +70,7 @@ func main() {
 	if dbPath == "" {
 		log.Fatal("No path to database. Make sure DBPATH is set.")
 	}
-	initDatabase(dbPath)
+	db = initDatabase(dbPath)
 	serve()
 
 }
