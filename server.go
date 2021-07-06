@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -35,8 +37,20 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Wordtracker %s", version)
 }
 
+func newRecord(w http.ResponseWriter, r *http.Request) {
+	//Just assume it's a POST. Sure it's lazy but it's not like anyone else is going to be writing clients
+	requestBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal("Could not read request.")
+	}
+	var record Record
+	json.Unmarshal(requestBody, &record)
+	fmt.Println(record)
+}
+
 func serve() {
 	http.HandleFunc("/", homePage)
+	http.HandleFunc("/update", newRecord)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
