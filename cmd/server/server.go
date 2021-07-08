@@ -35,25 +35,32 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 func newRecord(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal("Could not read request.")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Could not read request.")
+		return
 	}
 	var rec record.Record
 	err = json.Unmarshal(requestBody, &rec)
 	if err != nil {
-		log.Fatal("Could not read incoming record.")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Could not read incoming record.")
+		return
 	}
 	stmt, err := db.Prepare("INSERT INTO wordcount VALUES(?, ?, ?)")
 	if err != nil {
-		log.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	_, err = stmt.Exec(rec.Date, rec.Words, rec.Desc)
 	if err != nil {
-		log.Fatal("Error inserting into database.")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
