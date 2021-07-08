@@ -9,14 +9,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/carewdavid/wordtracker/record"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type Record struct {
-	Date  int    `json:"date"`
-	Words int    `json:"words"`
-	Desc  string `json:"desc"`
-}
 
 const version = "1.0.0"
 
@@ -44,7 +39,7 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Could not read request.")
 	}
-	var rec Record
+	var rec record.Record
 	err = json.Unmarshal(requestBody, &rec)
 	if err != nil {
 		log.Fatal("Could not read incoming record.")

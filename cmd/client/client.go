@@ -8,18 +8,14 @@ import (
 	"os"
 	"strconv"
 	"time"
-)
 
-type Record struct {
-	Date  int64  `json:date`
-	Words int    `json:words`
-	Desc  string `json:desc`
-}
+	"github.com/carewdavid/wordtracker/record"
+)
 
 func add(words int, desc string) {
 	now := time.Now().Local()
 	timestamp := now.Unix()
-	record := Record{timestamp, words, desc}
+	record := record.Record{timestamp, words, desc}
 	buf, _ := json.Marshal(record)
 	data := bytes.NewBuffer(buf)
 	http.Post("http://localhost:10000/update", "application/json", data)
