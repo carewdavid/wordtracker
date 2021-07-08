@@ -34,7 +34,10 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func newRecord(w http.ResponseWriter, r *http.Request) {
-	//Just assume it's a POST. Sure it's lazy but it's not like anyone else is going to be writing clients
+	if r.Method != http.MethodPost {
+		return
+	}
+
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal("Could not read request.")
