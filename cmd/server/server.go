@@ -55,6 +55,8 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Error inserting into database.")
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func serve() {
