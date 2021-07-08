@@ -12,7 +12,7 @@ import (
 
 type Record struct {
 	Date  int64  `json:date`
-	Words int    `json:date`
+	Words int    `json:words`
 	Desc  string `json:desc`
 }
 

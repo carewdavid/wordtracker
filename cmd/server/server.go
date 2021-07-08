@@ -44,8 +44,8 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Could not read request.")
 	}
-	var record Record
-	err = json.Unmarshal(requestBody, &record)
+	var rec Record
+	err = json.Unmarshal(requestBody, &rec)
 	if err != nil {
 		log.Fatal("Could not read incoming record.")
 	}
@@ -53,7 +53,7 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = stmt.Exec(record.Date, record.Words, record.Desc)
+	_, err = stmt.Exec(rec.Date, rec.Words, rec.Desc)
 	if err != nil {
 		log.Fatal("Error inserting into database.")
 	}
