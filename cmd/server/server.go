@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/carewdavid/wordtracker/record"
 	_ "github.com/mattn/go-sqlite3"
@@ -17,6 +18,13 @@ const version = "1.0.0"
 
 var schema = "CREATE TABLE IF NOT EXISTS wordcount(date INTEGER NOT NULL, words INTEGER NOT NULL, desc STRING)"
 var db *sql.DB
+
+//Current time, rounded down to the beginning of the day
+func today() Time {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+	return today
+}
 
 func initDatabase(path string) *sql.DB {
 	database, err := sql.Open("sqlite3", path)
