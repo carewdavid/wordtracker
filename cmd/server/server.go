@@ -20,7 +20,7 @@ var schema = "CREATE TABLE IF NOT EXISTS wordcount(date INTEGER NOT NULL, words 
 var db *sql.DB
 
 //Current time, rounded down to the beginning of the day
-func today() Time {
+func today() time.Time {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
 	return today
@@ -39,6 +39,35 @@ func initDatabase(path string) *sql.DB {
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Wordtracker %s", version)
+}
+
+func daily(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	stmt, err := db.Prepare("SELECT SUM(words) FROM wordcount where date >= ?")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	row := stmt.QueryRow(today().Unix())
+	var total int
+	err = row.Scan(&total)
+
+	if err != nil {
+		total = 0
+	}
+
+	data := struct {
+		Words int `json:words`
+	}{}
+	data.Words = total
+	buf, _ := json.Marshal(data)
+	fmt.Fprintf(w, string(buf))
+
 }
 
 func newRecord(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +105,7 @@ func newRecord(w http.ResponseWriter, r *http.Request) {
 
 func serve() {
 	http.HandleFunc("/", homePage)
+	http.HandleFunc("/today", daily)
 	http.HandleFunc("/update", newRecord)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
