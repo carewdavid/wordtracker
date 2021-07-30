@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/carewdavid/wordtracker/record"
@@ -70,6 +71,55 @@ func daily(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func since(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	params := r.URL.Query()
+	t := params.Get("t")
+	if t == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "No time given")
+		return
+	}
+	timestamp, err := strconv.ParseInt(t, 10, 64)
+
+	stmt, err := db.Prepare("SELECT SUM(words) FROM wordcount WHERE date >= ?")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatal(err)
+	}
+
+	row := stmt.QueryRow(t)
+
+	var total int
+	err = row.Scan(&total)
+
+	if err != nil {
+		total = 0
+	}
+
+	now := today()
+	then := time.Unix(timestamp, 0)
+	//Get elapsed time in days. Yucky magic number is the number of seconds in
+	//one day sind Duration doesn't have a method to get the right number natively
+	const SECONDS_PER_DAY = 86400
+	elapsed := now.Sub(then).Round(SECONDS_PER_DAY).Seconds() / SECONDS_PER_DAY
+
+	data := struct {
+		Words   int     `json:words`
+		Average float64 `json:average`
+	}{}
+	data.Words = total
+	//No, we can't just use SQl AVERAGE(). The number of records is not the same
+	//as the number of days in the time period (probably) so that will give the wrong answer
+	data.Average = float64(total) / elapsed
+	buf, _ := json.Marshal(data)
+	fmt.Fprintf(w, string(buf))
+}
+
 func newRecord(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -107,6 +157,7 @@ func serve() {
 	http.HandleFunc("/", homePage)
 	http.HandleFunc("/today", daily)
 	http.HandleFunc("/update", newRecord)
+	http.HandleFunc("/since", since)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
